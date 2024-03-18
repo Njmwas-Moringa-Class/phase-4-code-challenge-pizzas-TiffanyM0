@@ -2,7 +2,7 @@
 
 from app import app
 from models import db, Restaurant, Pizza, RestaurantPizza
-
+#
 with app.app_context():
 
     # This will delete any existing rows
