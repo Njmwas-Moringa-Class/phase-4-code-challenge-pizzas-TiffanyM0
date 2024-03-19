@@ -13,12 +13,13 @@ db = SQLAlchemy(metadata=metadata)
 
 class Restaurant(db.Model, SerializerMixin):
     __tablename__ = 'restaurants'
-
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     address = db.Column(db.String)
 
     # add relationship
+    pizzas_id = db.Column(db.Integer, db.ForeignKey('pizzas.id'))
+    pizzas = db.relationship("Pizza", backref='pizzas')
 
     # add serialization rules
 
@@ -28,12 +29,14 @@ class Restaurant(db.Model, SerializerMixin):
 
 class Pizza(db.Model, SerializerMixin):
     __tablename__ = 'pizzas'
-
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     ingredients = db.Column(db.String)
 
     # add relationship
+    restaurants_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'))
+
+    restaurants = db.relationship("Restaurant", backref='restaurants')
 
     # add serialization rules
 
@@ -43,12 +46,13 @@ class Pizza(db.Model, SerializerMixin):
 
 class RestaurantPizza(db.Model, SerializerMixin):
     __tablename__ = 'restaurant_pizzas'
-
     id = db.Column(db.Integer, primary_key=True)
     price = db.Column(db.Integer, nullable=False)
 
     # add relationships
-
+    restaurants_id = db.relationship("Restaurant", backref='restaurants')
+    pizzas_id = db.relationship("Pizzas", backref='pizzas')    
+    
     # add serialization rules
 
     # add validation
