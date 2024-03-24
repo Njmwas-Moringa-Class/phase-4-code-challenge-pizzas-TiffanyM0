@@ -26,11 +26,14 @@ def index():
 
 @app.route('/restaurants')
 def get_restaurants():
+
     restaurants = []
+
     for restaurant in Restaurant.query.all():
         restaurants_dict= {
+            "address" : restaurant.address,
+            "id" : restaurant.id,
             "name" : restaurant.name,
-            "address" : restaurant.address
         }
         restaurants.append(restaurants_dict)
     
@@ -38,6 +41,85 @@ def get_restaurants():
         jsonify(restaurants)
     )
     return response
+
+@app.route('/restaurants/<int:id>', methods = ['GET', 'DELETE'])
+def restaurant_by_id(id):
+    restaurants = Restaurant.query.filter_by(id=id).first()
+    if restaurants: 
+        if request.method == 'GET':
+            restaurant_serialized = restaurants.to_dict()
+            response= make_response(
+                jsonify(restaurant_serialized), 
+                200
+            )
+            return response
+        
+        elif request.method == 'DELETE':
+            db.session.delete(restaurants)
+            db.session.commit()
+            response_body = {
+                'deleted' : True
+            }
+            response = make_response(jsonify(response_body), 204)
+            return response
+    else:
+        return jsonify({"error": "Restaurant not found"}), 404
+
+@app.route('/pizzas')
+def get_pizzas():
+    pizzas = []
+    for item in Pizza.query.all():
+        pizzas_dict = {
+            'id' : item.id,
+            'ingredients' : item.ingredients,
+            'name' : item.name
+        }
+        pizzas.append(pizzas_dict)
+    response = make_response(
+        jsonify(pizzas), 
+        200
+    )
+
+    return response
+
+@app.route('/restaurant_pizzas', methods = ['GET', 'POST'])
+def get_restaurant_pizzas():
+
+    if request.method == 'GET':
+        restaurant_pizzas = []
+        for pizza in RestaurantPizza.query.all():
+            restaurant_pizzas_dict = {
+                'id' : pizza.id,
+                'price': pizza.price,
+                'pizza_id' : pizza.price_id,
+                'restaurant_id' : pizza.restaurant_id
+            }
+            restaurant_pizzas.append(restaurant_pizzas_dict)
+
+        response = make_response(
+            jsonify(restaurant_pizzas), 
+            200
+        )
+
+        return response
+    
+    elif request.method == 'POST':
+
+        new_restaurant_pizzas = RestaurantPizza(
+            price=request.form.get('price'),
+            pizza_id=request.form.get('pizza_id'),
+            restaurant_id=request.form.get('restaurant_id')
+        )
+
+        db.session.add(new_restaurant_pizzas)
+        db.session.commit()
+
+        response = make_response(
+            jsonify(new_restaurant_pizzas.to_dict()), 
+            201
+        )
+
+        return response
 
 
 if __name__ == '__main__':
