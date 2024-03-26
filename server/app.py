@@ -153,38 +153,61 @@ def get_restaurant_pizzas():
         return response
     
     elif request.method == 'POST':
+        # price = request.form.get('price')
+        # # if not price_str:
+        # #     return make_response(jsonify({
+        # #         "errors": ["Price is required"]
+        # #     }), 201)
+        # # price = int(price_str)
 
-        price = request.form.get('price')
+        # if 1 <= price <= 30:
+        #     new_restaurant_pizzas = RestaurantPizza(
+        #         price=price,
+        #         pizza_id=request.form.get('pizza_id'),
+        #         restaurant_id=request.form.get('restaurant_id')
+        #     )
 
-        if (price in range(1, 30)):
-            new_restaurant_pizzas = RestaurantPizza(
-                price=price,
-                pizza_id=request.form.get('pizza_id'),
-                restaurant_id=request.form.get('restaurant_id')
-            )
+        #     db.session.add(new_restaurant_pizzas)
+        #     db.session.commit()
+        #     new_restaurant_pizzas_dict = {
+        #         'price' : new_restaurant_pizzas.price,
+        #         'pizza_id' : new_restaurant_pizzas.pizza_id,
+        #         'restaurant_id' : new_restaurant_pizzas.restaurant_id
+        #     }
 
-            db.session.add(new_restaurant_pizzas)
-            db.session.commit()
-            new_restaurant_pizzas_dict = {
-                'price' : new_restaurant_pizzas.price,
-                'pizza_id' : new_restaurant_pizzas.pizza_id,
-                'restaurant_id' : new_restaurant_pizzas.restaurant_id
-            }
+        #     response = make_response(
+        #         jsonify(new_restaurant_pizzas_dict), 
+        #         201
+        #     )
+        #     return response
+        try:
+                new_restaurant_pizza = RestaurantPizza(
+                    price=request.json.get('price'),
+                    pizza_id=request.json.get('pizza_id'),
+                    restaurant_id=request.json.get('restaurant_id'),
+                )
+                db.session.add(new_restaurant_pizza)
+                db.session.commit()
 
-            response = make_response(
-                jsonify(new_restaurant_pizzas_dict), 
-                201
-            )
-            return response
-        
-        else: 
-            return make_response(jsonify({
-                "errors": ["validation errors"]
-            }), 400)
+                # Retrieve the associated pizza and restaurant
+                pizza = db.session.get(Pizza, new_restaurant_pizza.pizza_id)
+                restaurant = db.session.get(Restaurant, new_restaurant_pizza.restaurant_id)
+
+                return jsonify({
+                    'id': new_restaurant_pizza.id,
+                    'price': new_restaurant_pizza.price,
+                    'pizza': pizza.to_dict(),
+                    'pizza_id': new_restaurant_pizza.pizza_id,
+                    'restaurant': restaurant.to_dict(),
+                    'restaurant_id': new_restaurant_pizza.restaurant_id
+                }), 201
+        except ValueError as e:
+            return jsonify({"errors": [str(e)]}), 400
+
+        # else: 
+        #     return make_response(jsonify({
+        #         "errors": ["validation errors"]
+        #     }), 400)
             
-
-
-
-
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
